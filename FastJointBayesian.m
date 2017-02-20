@@ -1,77 +1,91 @@
 function [mapping, running_time] = FastJointBayesian(X, labels, theta, num_iter)
-% Input: X - d x n training samples; labels - ground truth labels; theta -
-% stopping criterion; num_iter - max iterations
-%
-% Output: mapping - a set including Smu, Sep, G, A; running time - elapse
-% time of each iteration
+%% Input: 
+%% X - d x n training samples; 
+%% labels - ground truth labels; 
+%% theta -  stopping criterion; 
+%% num_iter - max iterations
 
-% Make sure labels are nice
+%% Output: 
+%% mapping - a set including Smu, Sep, G, A; 
+%% running time - elapse time of each iteration
+
+%% Make sure labels are nice
 [classes, ~, labels] = unique(labels);
-% number of classes
+%% number of classes
 nc = length(classes);
 
-% initilize a few variables
+%% initilize a few variables
 n = length(labels);
-% dimension of feature
+
+%% dimension of feature
 d = size(X,2);
-% store the running time of each iteration
+
+%% store the running time of each iteration
 running_time = zeros(1, num_iter);
-% store the face images of each class
+
+%% store the face images of each class
 face_class = cell(nc,1);
-% a counter
+
+%% a counter
 withinCount = 0;
-% memory the number of faces in each class, set to 1 if we've got such
-% number of faces
+
+%% memory the number of faces in each class, set to 1 if we've got such number of faces
 numberCount = zeros(1000,1);
 
 for i=1:nc
-    % store all instances with class i
+    %% store all instances with class i
     face_class{i} = X(labels == i,:);
-    % select classes with at least 2 instaces
+    
+    %% select classes with at least 2 instaces
     if size(face_class{i},1)>1
         withinCount = withinCount + size(face_class{i},1);
-    end;
+    end
+    
     if numberCount(size(face_class{i},1)) ==0
         numberCount(size(face_class{i},1)) = 1;
-    end;
-end;
+    end
+end
 
-% inter-class vector set
+%% inter-class vector set
 mu = zeros(d,nc);
-% intra-class vector set
+
+%% intra-class vector set
 ep = zeros(d,withinCount);
-% count the number of columns, used later
+
+%% count the number of columns, used later
 col_count = 1;
 
-% initialize within- and between- scatter matrices
+%% initialize within- and between- scatter matrices
 for i=1:nc
-    % update inter-class vector set
+    %% update inter-class vector set
     mu(:,i) = mean(face_class{i},1)';
-    % update intra-class vector set
+    %% update intra-class vector set
     if size(face_class{i},1)>1
         ep(:,col_count:col_count+ size(face_class{i}, 1)-1) = bsxfun(@minus,face_class{i}',mu(:,i));
         col_count = col_count + size(face_class{i}, 1);
     end
 end
 
-% between-class scatter
+%% between-class scatter
 Smu = cov(mu');
-% within-class scatter
+
+%% within-class scatter
 Sep = cov(ep');
 
 oldSep = Sep;
-% temp variables, different from Su and Sw
+
+%% temp variables, different from Su and Sw
 Smu_temp = cell(1000,1);
 Sep_temp = cell(1000,1);
 
-% EM updating
+%% EM updating
 for l=1:num_iter
     tic;
     F = inv(Sep);
     ep = zeros(d,n);
     col_count = 1;
     
-    % following update procedure of ECCV2012 paper
+    %% following update procedure of ECCV-2012 paper
     for i = 1:1000
         if numberCount(i)==1
             G = -1 .* (i .* Smu + Sep) \ Smu / Sep;
@@ -90,7 +104,7 @@ for l=1:num_iter
     Sep = cov(ep');
     
     running_time(l) = toc;
-%     fprintf('iteration-%d: Sep appx error is %f || running time is %fs\n',l,norm(Sep - oldSep)/norm(Sep), running_time(l));
+%%     fprintf('iteration-%d: Sep appx error is %f || running time is %fs\n',l,norm(Sep - oldSep)/norm(Sep), running_time(l));
     
     if norm(Sep - oldSep)/norm(Sep)<theta
         break;
@@ -99,7 +113,7 @@ for l=1:num_iter
     oldSep = Sep;
 end
 
-% collecting results
+%% collecting results
 F = inv(Sep);
 mapping = [];
 mapping.G = -1 .* (2 * Smu + Sep) \ Smu / Sep;
