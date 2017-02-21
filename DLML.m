@@ -155,7 +155,6 @@ for iter = 1: maxIter
     stopALM = norm(leq1,'fro');
     stopALM = max(norm(leq2,'fro'),stopALM);
     stopALM = max(norm(leq3,'fro'),stopALM);
-    disp(stopALM)
     if stopALM < 1e-3
         break;
     end
