@@ -1,0 +1,9 @@
+function plotLine(x,y) 
+if nargin<2
+    y=x;
+    x=1:length(y);
+end
+plot(x,y,'--rs','LineWidth',4,...
+                'MarkerEdgeColor','k',...
+                'MarkerFaceColor','g',...
+                'MarkerSize',10)
