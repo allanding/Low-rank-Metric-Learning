@@ -44,7 +44,7 @@ for i_fold = 1:10
     options.Sw = Sw;
     options.St = St;
     %% fast low-rank metric 
-    P = FastLRML(Xs, Ys, P, options);
+    P = LRML(Xs, Ys, P, options);
     %% pos samples
     Xt = P'* Xt;
     for i = 1: 300
