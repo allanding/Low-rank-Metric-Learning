@@ -59,7 +59,7 @@ for i_fold = 1:10
     options.Sw = S_mu;
     options.St = S_eps;
     %% fast low-rank metric learning
-    P = FastLRML(Xs, Ys, P, options);
+    P = LRML(Xs, Ys, P, options);
 
     %% pos samples
     Xt = P'* Xt;
