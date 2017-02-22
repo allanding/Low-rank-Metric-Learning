@@ -3,8 +3,7 @@ clear
 close all
 %% This is an example code to run our LDA/fast JB + low-rank metric on LFW deep features
 
-
-
+%% load data with 10 folds
 load LFW_a.mat;
 nfea = [];
 for i_fold = 1:10
@@ -20,7 +19,7 @@ for i_fold=1:10
     fea{i_fold} = P'*fea{i_fold};
 end
 idx = 1:10;
-warning off
+
 
 
 %% parameters
@@ -32,10 +31,12 @@ options.optP = 2; %% optimization method of P: 1 or 2;
 for i_fold = 1:10
     disp(i_fold)
     
+    %% Test data
     Xt = fea{i_fold,1};
     Xt = NormalizeFea(Xt,0);
     Xt = CentralizeFea(Xt,0);
     
+    %% Training data
     sidx = idx;
     sidx(i_fold)=[];
     Xs = [];
@@ -47,17 +48,20 @@ for i_fold = 1:10
     Xs = NormalizeFea(Xs,0);
     Xs = CentralizeFea(Xs,0);
     
+    %% Choose method to Initialize the subspace
     if strcmp(options.init,'jb')
-        %% JB learning
         %% para for JB learning
         max_iter = 200;
         theta = 1e-6;
+        
+        %% JB learning
         [mapping, running_time] = FastJointBayesian(Xs', Ys, theta, max_iter);
         
         S_mu = mapping.Su;
         S_eps = mapping.Sw;
         G = mapping.G;
         A = mapping.A;
+        
         %% JB based subsapce
         [P, S, ~] = svd(-G);
         P = P(:, 1:dim);
@@ -74,9 +78,11 @@ for i_fold = 1:10
         options.Sw = Sw;
         options.St = St;
     end
+    
     %% low-rank metric learning
     P = DLML(Xs,P,options);
     disp('Metric Learning finished')
+    
     %% pos samples
     Xt = P'* Xt;
     for i = 1: 300
